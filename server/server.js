@@ -13,6 +13,7 @@ import orderRouter from "../server/routes/orderRoute.js";
 //import { stripeWebhooks } from "../server/controllers/orederController.js";
 
 const app = express();
+const port = process.env.PORT || 4000;
 
 // Connect DB and Cloudinary (Move to request time or use a connection flag)
 let isConnected = false;
@@ -31,8 +32,9 @@ const connectServices = async () => {
 app.use(express.json());
 app.use(cookieParser());
 
-const allowedOrigins = ['http://localhost:5173', 'https://your-frontend.vercel.app'];
+const allowedOrigins = ['http://localhost:5173'];
 app.use(cors({ origin: allowedOrigins, credentials: true }));
+
 
 // Routes
 app.get('/api', (req, res) => res.status(200).send('API is working ✅'));
@@ -48,3 +50,14 @@ export default async function handler(req, res) {
   await connectServices(); // Ensure DB & Cloudinary are connected
   return app(req, res);    // Pass the request to Express
 }
+// Only run when not in a serverless environment (i.e., when running locally)
+if (process.env.NODE_ENV !== 'production') {
+  const start = async () => {
+    await connectServices(); // connect DB and Cloudinary
+    app.listen(port, () => {
+      console.log(`✅ Server running on http://localhost:${port}`);
+    });
+  };
+  start();
+}
+
